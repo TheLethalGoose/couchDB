@@ -24,6 +24,7 @@ public class User {
     @SerializedName("Username")
     private String username;
 
+    @SerializedName("QuestionWatches")
     private List<Tag> tagWatches;
 
     public User(String email, String password, String username) {

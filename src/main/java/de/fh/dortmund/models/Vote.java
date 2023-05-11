@@ -1,6 +1,5 @@
 package de.fh.dortmund.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.github.javafaker.Faker;
 import de.fh.dortmund.models.enums.VoteType;
 import lombok.Data;
@@ -8,7 +7,6 @@ import lombok.Data;
 import java.util.Random;
 
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Vote {
     private String userId;
 
