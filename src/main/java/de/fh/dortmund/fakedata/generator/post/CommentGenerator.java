@@ -3,7 +3,7 @@ package de.fh.dortmund.fakedata.generator.post;
 import com.github.javafaker.Faker;
 import de.fh.dortmund.helper.LocalDateTimeGenerator;
 import de.fh.dortmund.helper.Timer;
-import de.fh.dortmund.models.Answer;
+import de.fh.dortmund.models.Comment;
 import de.fh.dortmund.models.Question;
 import de.fh.dortmund.models.User;
 import de.fh.dortmund.service.POST;
@@ -11,15 +11,13 @@ import de.fh.dortmund.service.POST;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Random;
 
-public class AnswerGenerator {
+public class CommentGenerator {
 
     static Faker faker = new Faker();
     static Timer timer = new Timer();
-    static Random random = new Random();
 
-    public static long generateAnswers(String databaseName, List<Answer> answersRef, List<Question> questionsRef, List<User> usersRef, int amount, boolean debug) {
+    public static long generateComments(String databaseName, List<Comment> commentsRef, List<Question> questionsRef, List<User> usersRef, int amount, boolean debug) {
 
         if (usersRef.isEmpty() || questionsRef.isEmpty()) {
             System.out.println("No users or questions found. Please create users and questions first.");
@@ -35,22 +33,20 @@ public class AnswerGenerator {
             int randomQuestionIndex = (int) (Math.random() * questionsRef.size());
             int randomUserIndex = (int)(Math.random() * usersRef.size());
 
-            String answerText = faker.lorem().sentence();
+            String commentText = faker.lorem().sentence();
             User user = usersRef.get(randomUserIndex);
             Question question = questionsRef.get(randomQuestionIndex);
-
-            boolean accepted = faker.bool().bool();
 
             LocalDateTime createdAt = LocalDateTimeGenerator.generateRandomLocalDateTimeAfter(LocalDateTime.parse(question.getCreatedAt()));
             LocalDateTime modifiedAt = LocalDateTimeGenerator.generateRandomLocalDateTimeAfter(createdAt);
 
-            Answer newAnswer = new Answer(user.getId(), question.getId(), answerText, accepted, createdAt.toString(), modifiedAt.toString());
-            answersRef.add(newAnswer);
+            Comment newComment = new Comment(user.getId(), question.getId(), commentText, createdAt.toString(), modifiedAt.toString());
+            commentsRef.add(newComment);
 
         }
 
         try {
-            POST.post(answersRef);
+            POST.post(commentsRef);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -58,7 +54,7 @@ public class AnswerGenerator {
         long timeToCreate = timer.getElapsedTime();
 
         if (debug){
-            System.out.println("Created " + amount + " answers in " + timeToCreate + " ms.");
+            System.out.println("Created " + amount + " comments in " + timeToCreate + " ms.");
         }
 
         return timer.getElapsedTime();
