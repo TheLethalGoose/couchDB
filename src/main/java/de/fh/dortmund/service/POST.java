@@ -27,7 +27,10 @@ public class POST {
 
         HttpPost request = new HttpPost("http://localhost:5984/" + databaseName);
 
-        request.setEntity(new StringEntity(gson.toJson(object), ContentType.APPLICATION_JSON));
+        JsonObject jsonObject = gson.toJsonTree(object).getAsJsonObject();
+        jsonObject.addProperty("type", object.getClass().getSimpleName().toLowerCase());
+
+        request.setEntity(new StringEntity(jsonObject.getAsString(), ContentType.APPLICATION_JSON));
 
         return executeRequest(request);
 
@@ -37,11 +40,20 @@ public class POST {
 
         HttpPost request = new HttpPost("http://localhost:5984/" + databaseName + "/_bulk_docs");
 
-        JsonObject jsonObject = new JsonObject();
-        JsonArray jsonArray = new Gson().toJsonTree(objects).getAsJsonArray();
-        jsonObject.add("docs", jsonArray);
+        JsonObject docs = new JsonObject();
 
-        request.setEntity(new StringEntity(jsonObject.toString(), ContentType.APPLICATION_JSON));
+        JsonArray jsonArray = objects.stream()
+                .map(object -> {
+                    JsonObject jsonObject = gson.toJsonTree(object).getAsJsonObject();
+                    String type = object.getClass().getSimpleName().toLowerCase();
+                    jsonObject.addProperty("type", type);
+                    return jsonObject;
+                })
+                .collect(JsonArray::new, JsonArray::add, JsonArray::addAll);
+
+        docs.add("docs", jsonArray);
+
+        request.setEntity(new StringEntity(docs.toString(), ContentType.APPLICATION_JSON));
 
         return executeRequest(request);
 
