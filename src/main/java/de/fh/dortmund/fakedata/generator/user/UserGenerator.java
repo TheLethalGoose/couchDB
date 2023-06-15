@@ -1,4 +1,4 @@
-package de.fh.dortmund.fakedata.user;
+package de.fh.dortmund.fakedata.generator.user;
 
 import com.github.javafaker.Faker;
 import de.fh.dortmund.helper.Timer;
@@ -13,9 +13,9 @@ public class UserGenerator{
 	static Faker faker = new Faker();
 	static Timer timer = new Timer();
 
-	public static long generateUsers(List<User> usersRef, int amount, boolean debug) {
+	public static long generateUsers(String databaseName, List<User> usersRef, int amount, boolean debug) {
 
-		POST POST = new POST("stackoverflow");
+		POST POST = new POST(databaseName);
 
 		timer.start();
 
@@ -25,7 +25,7 @@ public class UserGenerator{
 			String email = faker.internet().emailAddress();
 			int reputation = faker.number().numberBetween(0, 10000);
 
-			User newUser = new User(username, password, email, reputation);
+			User newUser = new User(email,password,username, reputation);
 			usersRef.add(newUser);
 		}
 
@@ -38,7 +38,7 @@ public class UserGenerator{
 		long timeToCreate = timer.getElapsedTime();
 
 		if(debug) {
-			System.out.println("Created " + amount + " users in " + timeToCreate + "ms");
+			System.out.println("Created " + amount + " users in " + timeToCreate + "ms.");
 		}
 
 		return timer.getElapsedTime();
