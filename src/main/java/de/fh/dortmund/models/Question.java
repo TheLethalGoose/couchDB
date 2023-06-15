@@ -23,9 +23,10 @@ public class Question extends Post {
         super(jsonObject.get("idUser").getAsString(), jsonObject.get("content").getAsString(), PostType.QUESTION, null);
         this.title = jsonObject.get("title").getAsString();
     }
-    public Question(String userId, String title, String content, String createdAt, String modifiedAt) {
+    public Question(String userId, String title, String content, String createdAt, String modifiedAt, int views) {
         super(userId, content, PostType.QUESTION, null, createdAt, modifiedAt);
         this.title = title;
+        this.views = views;
     }
     @Override
     public String toString() {
@@ -35,6 +36,7 @@ public class Question extends Post {
                 ", content='" + getContent().substring(0, 5) + "[...]" + '\'' +
                 ", createdAt='" + getCreatedAt() + '\'' +
                 ", modifiedAt='" + getModifiedAt() + '\'' +
+                ", views='" + getViews() + '\'' +
                 '}';
     }
 }
