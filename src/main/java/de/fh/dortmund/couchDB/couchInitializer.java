@@ -6,6 +6,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
@@ -57,6 +58,15 @@ public class couchInitializer {
 
         return httpClient.execute(createRequest, context);
     }
+    private static HttpResponse deleteDatabase(URI databaseUri, HttpClientContext context, CredentialsProvider credentialsProvider) throws IOException {
+
+        HttpDelete createRequest = new HttpDelete(databaseUri);
+
+        CloseableHttpClient httpClient = HttpClientBuilder.create().
+                setDefaultCredentialsProvider(credentialsProvider).build();
+
+        return httpClient.execute(createRequest, context);
+    }
 
     private static HttpResponse defineSecurityRules(URI databaseUri, HttpClientContext context, CredentialsProvider credentialsProvider) throws IOException {
 
@@ -74,7 +84,7 @@ public class couchInitializer {
     }
 
 
-    public static void init(String host, int port, String databaseName, String user, String password) throws URISyntaxException {
+    public static void init(String host, int port, String databaseName, String user, String password, boolean flushData) throws URISyntaxException {
 
         // Configuration of the target host
         HttpHost target = new HttpHost(host, port, "http");
@@ -87,6 +97,22 @@ public class couchInitializer {
 
         // Creating the CredentialsProvider
         CredentialsProvider credentialsProvider = getCredentialsProvider(user, password, target);
+
+        if(flushData) {
+
+            try {
+                HttpResponse responseDelete = deleteDatabase(databaseUri, context, credentialsProvider);
+                int responseCodeDelete = responseDelete.getStatusLine().getStatusCode();
+
+                if (responseCodeDelete == 200) {
+                    System.out.println("Flushed database " + databaseName + " successfully.");
+                }
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
 
         try {
 
