@@ -1,5 +1,6 @@
 package de.fh.dortmund.models;
 
+import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
@@ -7,7 +8,7 @@ import java.util.UUID;
 
 @Data
 public class Tag {
-    @SerializedName("Id")
+    @SerializedName("_id")
     private String id = UUID.randomUUID().toString();
 
     @SerializedName("Name")
@@ -16,11 +17,15 @@ public class Tag {
     @SerializedName("Info")
     private String info;
 
-    private String questionId;
-
     public Tag(String tagName, String info) {
         this.name = tagName;
         this.info = info;
+    }
+
+    public Tag(JsonObject jsonObject) {
+        this.id = jsonObject.get("_id").getAsString();
+        this.name = jsonObject.get("name").getAsString();
+        this.info = jsonObject.get("info").getAsString();
     }
 
     @Override

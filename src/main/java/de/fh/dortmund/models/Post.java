@@ -13,7 +13,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Data
 public abstract class Post {
-    @SerializedName("Id")
+    @SerializedName("_id")
     private String id;
 
     @SerializedName("IdUser")

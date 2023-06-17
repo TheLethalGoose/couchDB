@@ -9,11 +9,8 @@ import java.util.UUID;
 
 @Data
 public class User {
-    @SerializedName("Id")
-    private String id = UUID.randomUUID().toString();
-
     @SerializedName("_id")
-    private String _id = id;
+    private String id = UUID.randomUUID().toString();
 
     @SerializedName("Email")
     private String email;
