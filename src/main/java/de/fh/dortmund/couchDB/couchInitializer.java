@@ -1,5 +1,7 @@
 package de.fh.dortmund.couchDB;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -18,9 +20,13 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Objects;
 
 public class couchInitializer {
 
@@ -82,6 +88,42 @@ public class couchInitializer {
 
         return httpClient.execute(securityRequest, context);
     }
+    private static void defineDesignDocuments(URI databaseUri, HttpClientContext context, CredentialsProvider credentialsProvider) throws IOException {
+
+        File designDocumentsFolder = new File("src/main/resources/design_documents");
+        File[] designDocuments = designDocumentsFolder.listFiles();
+
+        for(File designDocument : Objects.requireNonNull(designDocuments)) {
+            String designDocumentJson = new String(Files.readAllBytes(Paths.get(designDocument.getPath())));
+            HttpResponse response = createDesignDocument(designDocumentJson, databaseUri, context, credentialsProvider);
+
+            if(response.getStatusLine().getStatusCode() == 201) {
+                System.out.println("Design document " + designDocument.getName().replaceAll("\\.\\w+$", "") + " created successfully.");
+            }else{
+                System.out.println("Design document " + designDocument.getName() + " could not be created.");
+                System.out.println(response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
+            }
+
+        }
+
+    }
+
+    private static HttpResponse createDesignDocument(String designDocumentJson, URI databaseUri, HttpClientContext context, CredentialsProvider credentialsProvider) throws IOException {
+
+        Gson gson = new Gson();
+        JsonObject designDocument = gson.fromJson(designDocumentJson, JsonObject.class);
+        String designDocumentId = designDocument.get("_id").getAsString().split("/")[1];
+
+        HttpPut designDocumentRequest = new HttpPut(databaseUri + "/_design/" + designDocumentId);
+        StringEntity entity = new StringEntity(designDocumentJson, ContentType.APPLICATION_JSON);
+        designDocumentRequest.setEntity(entity);
+
+        CloseableHttpClient httpClient = HttpClientBuilder.create().
+                setDefaultCredentialsProvider(credentialsProvider).build();
+
+        return httpClient.execute(designDocumentRequest, context);
+
+    }
 
 
     public static void init(String host, int port, String databaseName, String user, String password, boolean flushData) throws URISyntaxException {
@@ -127,6 +169,8 @@ public class couchInitializer {
                 if(responseSecurity.getStatusLine().getStatusCode() == 200) {
                     System.out.println("Security rules created successfully.");
                 }
+
+                defineDesignDocuments(databaseUri, context, credentialsProvider);
 
                 return;
             }

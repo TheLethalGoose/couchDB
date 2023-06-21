@@ -1,0 +1,20 @@
+{
+  "_id": "_design/posts",
+  "views": {
+    "allAnswers": {
+      "map": "function (doc) {\n  if (doc.type === 'answer') {\n    emit(doc._id, doc);\n  }\n}"
+    },
+    "allQuestions": {
+      "map": "function (doc) {\n  if (doc.type === 'question') {\n    emit(doc._id, doc);\n  }\n}"
+    },
+    "totalVotesToQuestion": {
+      "reduce": "_sum",
+      "map": "function (doc) {\n  if (doc.type === 'vote') {\n    emit(doc.postId, doc.voteType === 'UPVOTE' ? 1 : -1);\n  }\n}"
+    },
+    "answersToQuestion": {
+      "map": "function(doc) { \n  if (doc.type === 'answer' && doc.IdParent) { \n    emit(doc.IdParent, doc); \n  } \n}",
+      "reduce": "_count"
+    }
+  },
+  "language": "javascript"
+}
