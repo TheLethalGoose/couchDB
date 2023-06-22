@@ -10,6 +10,7 @@ import de.fh.dortmund.service.POST;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -19,25 +20,22 @@ public class AnswerGenerator {
     static Timer timer = new Timer();
     static Random random = new Random();
 
-    public static long generateAnswers(String databaseName, List<Answer> answersRef, List<Question> questionsRef, List<User> usersRef, int amount, boolean debug) {
+    public static List<Answer> generateAnswers(List<Question> questions, List<User> users, int amount) {
+        List<Answer> answers = new ArrayList<>();
 
-        if (usersRef.isEmpty() || questionsRef.isEmpty()) {
+        if (users.isEmpty() || questions.isEmpty()) {
             System.out.println("No users or questions found. Please create users and questions first.");
-            return -1;
+            return null;
         }
-
-        POST POST = new POST(databaseName);
-
-        timer.start();
 
         for (int i = 0; i < amount; i++) {
 
-            int randomQuestionIndex = (int) (Math.random() * questionsRef.size());
-            int randomUserIndex = (int)(Math.random() * usersRef.size());
+            int randomQuestionIndex = (int) (Math.random() * questions.size());
+            int randomUserIndex = (int)(Math.random() * users.size());
 
             String answerText = faker.lorem().sentence();
-            User user = usersRef.get(randomUserIndex);
-            Question question = questionsRef.get(randomQuestionIndex);
+            User user = users.get(randomUserIndex);
+            Question question = questions.get(randomQuestionIndex);
 
             boolean accepted = faker.bool().bool();
 
@@ -45,24 +43,10 @@ public class AnswerGenerator {
             LocalDateTime modifiedAt = LocalDateTimeGenerator.generateRandomLocalDateTimeAfter(createdAt);
 
             Answer newAnswer = new Answer(user.getId(), question.getId(), answerText, accepted, createdAt.toString(), modifiedAt.toString());
-            answersRef.add(newAnswer);
+            answers.add(newAnswer);
 
         }
 
-        try {
-            POST.post(answersRef);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        long timeToCreate = timer.getElapsedTime();
-
-        if (debug){
-            System.out.println("Created " + amount + " answers in " + timeToCreate + " ms.");
-        }
-
-        return timer.getElapsedTime();
-
+        return answers;
     }
-
 }

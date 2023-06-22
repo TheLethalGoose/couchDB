@@ -5,6 +5,8 @@ import com.google.gson.annotations.SerializedName;
 import de.fh.dortmund.models.enums.PostType;
 import lombok.Data;
 
+import java.util.List;
+
 
 @Data
 public class Question extends Post {
@@ -15,14 +17,17 @@ public class Question extends Post {
     @SerializedName("Views")
     private int views;
 
+    private List<Tag> tags;
+
     public Question(String userId, String title, String content) {
         super(userId, content, PostType.QUESTION, null);
         this.title = title;
     }
-    public Question(String userId, String title, String content, String createdAt, String modifiedAt, int views) {
+    public Question(String userId, String title, String content, String createdAt, String modifiedAt, int views, List<Tag> tags) {
         super(userId, content, PostType.QUESTION, null, createdAt, modifiedAt);
         this.title = title;
         this.views = views;
+        this.tags = tags;
     }
     public Question(JsonObject jsonObject) {
         super(jsonObject.get("idUser").getAsString(), jsonObject.get("content").getAsString(), PostType.QUESTION, null);

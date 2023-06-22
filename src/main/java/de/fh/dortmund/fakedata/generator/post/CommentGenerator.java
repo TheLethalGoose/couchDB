@@ -9,7 +9,9 @@ import de.fh.dortmund.models.User;
 import de.fh.dortmund.service.POST;
 
 import java.io.IOException;
+import java.sql.Array;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CommentGenerator {
@@ -17,48 +19,31 @@ public class CommentGenerator {
     static Faker faker = new Faker();
     static Timer timer = new Timer();
 
-    public static long generateComments(String databaseName, List<Comment> commentsRef, List<Question> questionsRef, List<User> usersRef, int amount, boolean debug) {
-
-        if (usersRef.isEmpty() || questionsRef.isEmpty()) {
+    public static List<Comment> generateComments(List<Question> questions, List<User> users, int amount) {
+        List<Comment> comments = new ArrayList<>();
+        if (users.isEmpty() || questions.isEmpty()) {
             System.out.println("No users or questions found. Please create users and questions first.");
-            return -1;
+            return null;
         }
-
-        POST POST = new POST(databaseName);
-
-        timer.start();
 
         for (int i = 0; i < amount; i++) {
 
-            int randomQuestionIndex = (int) (Math.random() * questionsRef.size());
-            int randomUserIndex = (int)(Math.random() * usersRef.size());
+            int randomQuestionIndex = (int) (Math.random() * questions.size());
+            int randomUserIndex = (int)(Math.random() * users.size());
 
             String commentText = faker.lorem().sentence();
-            User user = usersRef.get(randomUserIndex);
-            Question question = questionsRef.get(randomQuestionIndex);
+            User user = users.get(randomUserIndex);
+            Question question = questions.get(randomQuestionIndex);
 
             LocalDateTime createdAt = LocalDateTimeGenerator.generateRandomLocalDateTimeAfter(LocalDateTime.parse(question.getCreatedAt()));
             LocalDateTime modifiedAt = LocalDateTimeGenerator.generateRandomLocalDateTimeAfter(createdAt);
 
             Comment newComment = new Comment(user.getId(), question.getId(), commentText, createdAt.toString(), modifiedAt.toString());
-            commentsRef.add(newComment);
+            comments.add(newComment);
 
         }
 
-        try {
-            POST.post(commentsRef);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        long timeToCreate = timer.getElapsedTime();
-
-        if (debug){
-            System.out.println("Created " + amount + " comments in " + timeToCreate + " ms.");
-        }
-
-        return timer.getElapsedTime();
-
+        return comments;
     }
 
 }

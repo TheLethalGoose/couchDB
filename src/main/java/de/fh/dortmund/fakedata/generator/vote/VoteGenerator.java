@@ -5,6 +5,7 @@ import de.fh.dortmund.models.*;
 import de.fh.dortmund.service.POST;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -13,58 +14,39 @@ public class VoteGenerator {
     static Random random = new Random();
     static Timer timer = new Timer();
 
-    public static long generateVotes(String databaseName, List<Vote> votesRef, List<Comment> commentsRef, List<Question> questionsRef, List<Answer> answersRef, List<User> usersRef, boolean debug) {
+    public static List<Vote> generateVotes(List<Comment> comments, List<Question> questions, List<Answer> answers, List<User> users) {
+        List<Vote> votes = new ArrayList<>();
 
-        if (usersRef.isEmpty() || questionsRef.isEmpty() || answersRef.isEmpty() || commentsRef.isEmpty()) {
+        if (users.isEmpty() || questions.isEmpty() || answers.isEmpty() || comments.isEmpty()) {
             System.out.println("No users, answers, comments or questions found. Please create them first.");
-            return -1;
+            return null;
         }
 
-        POST POST = new POST(databaseName);
+        for (User user : users) {
 
-        timer.start();
+            int randomQuestionIndex = (int) (Math.random() * questions.size());
+            int randomAnswerIndex = (int)(Math.random() * answers.size());
+            int randomCommentIndex = (int)(Math.random() * comments.size());
 
-        for (User user : usersRef) {
-
-            int randomQuestionIndex = (int) (Math.random() * questionsRef.size());
-            int randomAnswerIndex = (int)(Math.random() * answersRef.size());
-            int randomCommentIndex = (int)(Math.random() * commentsRef.size());
-
-            Vote newQuestionVote = new Vote(user.getId(), questionsRef.get(randomQuestionIndex).getId(), Vote.randomVoteType());
-            Vote newCommentVote = new Vote(user.getId(), commentsRef.get(randomCommentIndex).getId(), Vote.randomVoteType());
-            Vote newAnswerVote = new Vote(user.getId(), answersRef.get(randomAnswerIndex).getId(), Vote.randomVoteType());
+            Vote newQuestionVote = new Vote(user.getId(), questions.get(randomQuestionIndex).getId(), Vote.randomVoteType());
+            Vote newCommentVote = new Vote(user.getId(), comments.get(randomCommentIndex).getId(), Vote.randomVoteType());
+            Vote newAnswerVote = new Vote(user.getId(), answers.get(randomAnswerIndex).getId(), Vote.randomVoteType());
 
 
             int numVotesToAdd = random.nextInt(4);
 
             if (numVotesToAdd >= 2) {
-                votesRef.add(newQuestionVote);
+                votes.add(newQuestionVote);
             }
             if (numVotesToAdd >= 2) {
-                votesRef.add(newCommentVote);
+                votes.add(newCommentVote);
             }
             if (numVotesToAdd == 3) {
-                votesRef.add(newAnswerVote);
+                votes.add(newAnswerVote);
             }
 
         }
 
-        try {
-            POST.post(votesRef);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        long timeToCreate = timer.getElapsedTime();
-
-        if (debug){
-            System.out.println("Created " + votesRef.size() + " votes in " + timeToCreate + " ms.");
-        }
-
-        return timer.getElapsedTime();
-
+        return votes;
     }
-
-
-
 }

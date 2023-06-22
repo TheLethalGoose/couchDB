@@ -4,34 +4,61 @@ import de.fh.dortmund.couchDB.couchInitializer;
 import de.fh.dortmund.fakedata.generator.post.AnswerGenerator;
 import de.fh.dortmund.fakedata.generator.post.CommentGenerator;
 import de.fh.dortmund.fakedata.generator.post.QuestionGenerator;
+import de.fh.dortmund.fakedata.generator.tag.TagGenerator;
 import de.fh.dortmund.fakedata.generator.user.UserGenerator;
 import de.fh.dortmund.fakedata.generator.vote.VoteGenerator;
+import de.fh.dortmund.helper.Timer;
 import de.fh.dortmund.models.*;
+import de.fh.dortmund.service.POST;
 import lombok.SneakyThrows;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
 public class Main {
+    private static final int AMOUNT = 1000;
+    private static final int TAG_AMOUNT_PER_QUESTION = 5;
+    private static final String DATABASE_NAME = "stackoverflow";
+    private static POST POST = new POST(DATABASE_NAME);
+    static Timer timer = new Timer();
 
     @SneakyThrows
     public static void main(String[] args) {
 
-        couchInitializer.init("localhost", 5984, "stackoverflow", "admin", "admin", true);
+        couchInitializer.init("localhost", 5984, DATABASE_NAME, "admin", "admin", true);
 
-        List<User> users = new ArrayList<>();
-        List<Question> questions = new ArrayList<>();
-        List<Answer> answers = new ArrayList<>();
-        List<Comment> comments = new ArrayList<>();
-        List<Vote> votes = new ArrayList<>();
+        // Generate test data
+        List<User> users = UserGenerator.generateUsers(AMOUNT);
+        List<Tag> tags = TagGenerator.generateTags(AMOUNT);
+        List<Question> questions = QuestionGenerator.generateQuestions(users, AMOUNT, TAG_AMOUNT_PER_QUESTION, tags);
+        List<Answer> answers = AnswerGenerator.generateAnswers(questions, users, AMOUNT);
+        List<Comment> comments = CommentGenerator.generateComments(questions, users, AMOUNT);
+        List<Vote> votes = VoteGenerator.generateVotes(comments, questions, answers, users);
 
-        HashSet<Tag> tags = new HashSet<>();
+        // Insert data into database
+        insert(users, "users", true, AMOUNT);
+        insert(tags, "tags", true, AMOUNT);
+        insert(questions, "questions", true, AMOUNT);
+        insert(answers, "answers", true, AMOUNT);
+        insert(comments, "comments", true, AMOUNT);
+        insert(votes, "votes", true, votes.size());
+    }
 
-        UserGenerator.generateUsers("stackoverflow", users, 1000, true);
-        QuestionGenerator.generateQuestions("stackoverflow", questions, users, tags, 1000, 5, true);
-        AnswerGenerator.generateAnswers("stackoverflow", answers, questions, users, 1000, true);
-        CommentGenerator.generateComments("stackoverflow", comments, questions, users, 1000, true);
-        VoteGenerator.generateVotes("stackoverflow", votes, comments, questions, answers, users, true);
+    private static void insert(List<?> objects, String createdObjectName, boolean debug, int amount){
+        timer.start();
+
+        try {
+            POST.post(objects);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        long timeToCreate = timer.getElapsedTime();
+
+        if(debug) {
+            System.out.println("Created " + amount + " " +  createdObjectName + " in " + timeToCreate + "ms.");
+        }
     }
 }
