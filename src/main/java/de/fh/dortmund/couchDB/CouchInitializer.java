@@ -28,7 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Objects;
 
-public class couchInitializer {
+public class CouchInitializer {
 
     private static HttpClientContext httpClientContext(HttpHost target){
 
@@ -90,7 +90,7 @@ public class couchInitializer {
     }
     private static void defineDesignDocuments(URI databaseUri, HttpClientContext context, CredentialsProvider credentialsProvider) throws IOException {
 
-        File designDocumentsFolder = new File("src/main/resources/design_documents");
+        File designDocumentsFolder = new File("src/main/java/resources/design_documents");
         File[] designDocuments = designDocumentsFolder.listFiles();
 
         for(File designDocument : Objects.requireNonNull(designDocuments)) {
