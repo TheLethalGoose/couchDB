@@ -1,0 +1,14 @@
+{
+  "_id": "_design/tags",
+  "views": {
+    "allTags": {
+      "map": "function(doc) {\n  if (doc.type === 'question' && doc.tags && Array.isArray(doc.tags)) {\n    doc.tags.forEach(function(tag) {\n      emit(tag._id, {\n        Name: tag.Name,\n        Info: tag.Info\n      });\n    });\n  }\n}",
+      "reduce": "function(keys, values, rereduce) {\n  if (rereduce) {\n    return values.reduce(function(acc, value) {\n      acc.Name = value.Name;\n      acc.Info = value.Info;\n      return acc;\n    }, {});\n  } else {\n    return { Name: values[0].Name, Info: values[0].Info };\n  }\n}"
+    },
+    "popularTags": {
+      "reduce": "_sum",
+      "map": "function (doc) {\n  if (doc.type === 'question') {\n    for (var i = 0; i < doc.tags.length; i++) {\n      emit(doc.tags[i].Name, 1);\n    }\n  }\n}"
+    }
+  },
+  "language": "javascript"
+}

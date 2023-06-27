@@ -7,13 +7,20 @@
     "allQuestions": {
       "map": "function (doc) {\n  if (doc.type === 'question') {\n    emit(doc._id, doc);\n  }\n}"
     },
-    "totalVotesToQuestion": {
-      "reduce": "_sum",
-      "map": "function (doc) {\n  if (doc.type === 'vote') {\n    emit(doc.postId, doc.voteType === 'UPVOTE' ? 1 : -1);\n  }\n}"
-    },
     "answersToQuestion": {
-      "map": "function(doc) { \n  if (doc.type === 'answer' && doc.IdParent) { \n    emit(doc.IdParent, doc); \n  } \n}",
-      "reduce": "_count"
+      "map": "function(doc) { \n  if (doc.type === 'answer' && doc.IdParent) { \n    emit(doc.IdParent, doc); \n  } \n}"
+    },
+    "byUserId": {
+      "map": "function (doc) {\n  if (doc.type === 'question' && doc.IdUser) {\n    emit(doc.IdUser, doc);\n  }\n}"
+    },
+    "byTagName": {
+      "map": "function(doc) {\n  if (doc.type === 'question') {\n    for (var i = 0; i < doc.tags.length; i++) {\n      var tagName = doc.tags[i].Name;\n      emit(tagName, doc);\n    }\n  }\n}"
+    },
+    "latestQuestions": {
+      "map": "function (doc) {\n  if (doc.type === 'question' && doc.CreatedAt) {\n    var dateStr = doc.CreatedAt.split(\"T\");\n    emit(dateStr[0], doc);\n  }\n}"
+    },
+    "allComments": {
+      "map": "function (doc) {\n  if (doc.type === 'comment') {\n    emit(doc._id, doc);\n  }\n}"
     }
   },
   "language": "javascript"

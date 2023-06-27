@@ -3,6 +3,12 @@
   "views": {
     "allUsers": {
       "map": "function (doc) {\n  if(doc.type === 'user'){\n    emit(doc._id, doc);\n  }\n}"
+    },
+    "byEmail": {
+      "map": "function (doc) {\n  if (doc.type === 'user' && doc.Email) {\n    emit(doc.Email, doc);\n  }\n}"
+    },
+    "userFavorites": {
+      "map": "function (doc) {\n  if(doc.type === 'user' && doc.Favoriten){\n    emit(doc._id, doc.Favoriten);\n  }\n}"
     }
   },
   "language": "javascript"
