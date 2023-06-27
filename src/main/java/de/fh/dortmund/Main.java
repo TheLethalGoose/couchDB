@@ -55,8 +55,8 @@ public class Main {
         CouchPersistor.persist(votes, "votes", true, Objects.requireNonNull(votes).size());
 
 
-        //System.out.println(getDocsFromView("_design/tags","allTags",true, true)); //REDUCE FUNCTION
-        //System.out.println(getDocsFromView("_design/tags","popularTags",true, true)); //REDUCE FUNCTION
+        //System.out.println(getDocsFromView("_design/tags","allTags",true, true)); //REDUCE FUNCTION  //ERWEITERUNG
+        //System.out.println(getDocsFromView("_design/tags","popularTags",true, true)); //REDUCE FUNCTION //ERWEITERUNG
 
         //System.out.println(getDocsFromView("_design/users","allUsers"));
         //System.out.println(getDocsFromView("_design/users","byEmail","alexis.strosin@yahoo.com"));
@@ -71,11 +71,11 @@ public class Main {
         //System.out.println(getDocsFromView("_design/posts","allPosts"));
         //System.out.println(getDocsFromView("_design/posts","answersToQuestion", "0dbb4013-a135-4dfe-85c1-30009d071e2e"));
         //System.out.println(getDocsFromView("_design/posts","byUserId", "008c203b-c737-424d-82cf-9b56992ea743"));
-        //System.out.println(getDocsFromView("_design/posts","byTagName", "application"));
+        //System.out.println(getDocsFromView("_design/posts","byTagName", "application")); //ERWEITERUNG
         //System.out.println(getDocsFromView("_design/posts","latestQuestions"));
 
-        //addPostToFavorites("00945701-66eb-4d1f-b84f-b347f5038cef", "0dbb4013-a135-4dfe-85c1-30009d071e2e");
-        //System.out.println(getDocsFromView("_design/users","userFavorites", "00945701-66eb-4d1f-b84f-b347f5038cef"));
+        //addPostToFavorites("00945701-66eb-4d1f-b84f-b347f5038cef", "0dbb4013-a135-4dfe-85c1-30009d071e2e"); //ERWEITERUNG
+        //System.out.println(getDocsFromView("_design/users","userFavorites", "00945701-66eb-4d1f-b84f-b347f5038cef")); //ERWEITERUNG
         //updatePost("0dbb4013-a135-4dfe-85c1-30009d071e2e", "FML");
         //markAnswerAsAccepted("002e7a4b-ee51-4d2b-9577-faee515eabeb");
 
