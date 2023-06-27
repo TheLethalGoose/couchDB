@@ -13,19 +13,14 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import java.io.IOException;
 import java.util.List;
 
+import static de.fh.dortmund.Main.COUCHDB_URL;
+
 public class POST {
 
-    Gson gson = new Gson();
-    HttpClient httpClient = HttpClientBuilder.create().build();
-    String databaseName;
+    public static HttpResponse post(Object object) throws IOException {
 
-    public POST(String databaseName) {
-        this.databaseName = databaseName;
-    }
-
-    public HttpResponse post(Object object) throws IOException {
-
-        HttpPost request = new HttpPost("http://localhost:5984/" + databaseName);
+        HttpPost request = new HttpPost(COUCHDB_URL);
+        Gson gson = new Gson();
 
         JsonObject jsonObject = gson.toJsonTree(object).getAsJsonObject();
         jsonObject.addProperty("type", object.getClass().getSimpleName().toLowerCase());
@@ -35,11 +30,11 @@ public class POST {
         return executeRequest(request);
 
     }
-    public HttpResponse post(List<?> objects) throws IOException {
+    public static HttpResponse post(List<?> objects) throws IOException {
 
 
-        HttpPost request = new HttpPost("http://localhost:5984/" + databaseName + "/_bulk_docs");
-
+        HttpPost request = new HttpPost(COUCHDB_URL + "/_bulk_docs");
+        Gson gson = new Gson();
         JsonObject docs = new JsonObject();
 
         JsonArray jsonArray = objects.stream()
@@ -59,11 +54,9 @@ public class POST {
 
     }
 
-    private HttpResponse executeRequest(HttpPost request) throws IOException {
+    private static HttpResponse executeRequest(HttpPost request) throws IOException {
         HttpClient httpClient = HttpClientBuilder.create().build();
-
         return httpClient.execute(request);
-
     }
 
 }
