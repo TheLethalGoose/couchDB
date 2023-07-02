@@ -12,7 +12,7 @@ public class CouchPersistor {
 
     private static Timer timer = new Timer();
 
-    public static void persist(List<?> objects, String createdObjectName, boolean debug, int amount){
+    public static long persist(List<?> objects, String createdObjectName, boolean debug, int amount){
         timer.start();
 
         try {
@@ -26,6 +26,8 @@ public class CouchPersistor {
         if(debug) {
             System.out.println("Created " + amount + " " +  createdObjectName + " in " + timeToCreate + "ms.");
         }
+
+        return timeToCreate;
     }
 
 }
