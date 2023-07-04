@@ -16,9 +16,10 @@ import de.fh.dortmund.fakedata.receiver.UserReceiver;
 import de.fh.dortmund.fakedata.receiver.VoteReceiver;
 import de.fh.dortmund.helper.Timer;
 import de.fh.dortmund.models.*;
+import lombok.SneakyThrows;
 
-import java.sql.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import static de.fh.dortmund.helper.Statistics.*;
 import static de.fh.dortmund.helper.Timer.convertMilliSeconds;
@@ -58,17 +59,16 @@ public class PerformanceMonitor {
         timesToGenerate = new long[ddlIterations];
         timesToDestroy = new long[ddlIterations];
     }
+    @SneakyThrows
     public void runPerformanceTest(){
-        //Create and destroy data test
         createAndDestroyDataTest(10, 1500, 2000, 2, 500, 1000, 5);
-
         //Fetch and edit data test
         generateTestData(1000, 1000, 2000, 1000, 5);
-
         fetchDataTest();
         editDataTest();
     }
 
+    @SneakyThrows
     private void createAndDestroyDataTest(int usersToGenerate, int questionsToGenerate, int answersToGenerate, int tagsToGenerate, int questionsToDestroy, int answersToDestroy, int usersToDestroy){
 
         Timer timer = new Timer();
@@ -82,14 +82,15 @@ public class PerformanceMonitor {
             tags = TagGenerator.generateTags(tagsToGenerate);
             questions = QuestionGenerator.generateQuestions(users, questionsToGenerate, 5, tags);
             answers = AnswerGenerator.generateAnswers(questions, users, answersToGenerate);
+            // Insert data into database
 
             // Test performance of generation and deletion of users, questions and answers
             timer.start();
 
             // Persist in database and retrieve times
-            long generatedUsersIn = CouchPersistor.persist(users, "users", false, usersToDestroy);
-            long generatedQuestionsIn = CouchPersistor.persist(questions, "questions", false, questionsToDestroy);
-            long generatedAnswersIn = CouchPersistor.persist(answers, "answers", false, answersToDestroy);
+            long generatedUsersIn = CouchPersistor.persist(users, false);
+            long generatedQuestionsIn = CouchPersistor.persist(questions, false);
+            long generatedAnswersIn = CouchPersistor.persist(answers, false);
 
             long generatedIn = timer.getElapsedTime();
 
@@ -99,9 +100,10 @@ public class PerformanceMonitor {
             timesToGenerate[i] = generatedIn;
 
             // Deletion from database
+
             long destroyedUsersIn = UserDestroyer.destroyUsers(users, usersToDestroy, false);
-            long destroyedQuestionsIn = PostDestroyer.destroyQuestions(questions, answers, questionsToDestroy,false);
-            long destroyedAnswersIn = PostDestroyer.destroyAnswers(answers, answersToDestroy, false);
+            long destroyedQuestionsIn = PostDestroyer.destroyQuestions(questions, answers, comments, votes, questionsToDestroy,false);
+            long destroyedAnswersIn = PostDestroyer.destroyAnswers(answers, votes, answersToDestroy, false);
 
             long destroyedIn = timer.getElapsedTime();
 
@@ -109,6 +111,7 @@ public class PerformanceMonitor {
             destroyedQuestionsInTimes[i] = destroyedQuestionsIn;
             destroyedAnswersInTimes[i] = destroyedAnswersIn;
             timesToDestroy[i] = destroyedIn;
+
 
             // Console output for current run
             if(ddlIterations == 1){
@@ -192,11 +195,12 @@ public class PerformanceMonitor {
 
         System.out.println("Median time to edit content of question of " + fetchIterations + " iterations: " + convertMilliSeconds(PostEditor.medianTimeToEditQuestion(questions, fetchIterations)));
         System.out.println("Median time to mark answer as accepted of " + fetchIterations + " iterations: " + convertMilliSeconds(PostEditor.medianTimeToAcceptAnswer(answers, fetchIterations)));
-        System.out.println("(EXTENSION) Median time to add post to favorites of " + fetchIterations + " iterations: " + convertMilliSeconds(PostEditor.medianTimeToAddPostToFavorites(answers, fetchIterations)));
+        System.out.println("(EXTENSION) Median time to add question to favorites of " + fetchIterations + " iterations: " + convertMilliSeconds(PostEditor.medianTimeToAddQuestionToFavorites(users, questions, fetchIterations)));
 
         System.out.println("------------------------------------------------------------------");
     }
 
+    @SneakyThrows
     public void generateTestData(int usersToGenerate, int questionsToGenerate, int answersToGenerate, int commentsToGenerate, int maxTagsToGeneratePerQuestion){
         System.out.println("Generating test data");
 
@@ -205,9 +209,7 @@ public class PerformanceMonitor {
         votes = VoteGenerator.generateVotes(comments, questions, answers, users);
 
         // Insert data into database
-        CouchPersistor.persist(users, "users", false, usersToGenerate);
-        CouchPersistor.persist(questions, "questions", false, questionsToGenerate);
-        CouchPersistor.persist(answers, "answers", false, answersToGenerate);
-        CouchPersistor.persist(votes, "votes", false, Objects.requireNonNull(votes).size());
+        CouchPersistor.persist(comments, false);
+        CouchPersistor.persist(votes, false);
     }
 }

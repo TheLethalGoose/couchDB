@@ -4,7 +4,6 @@ import de.fh.dortmund.helper.Timer;
 import de.fh.dortmund.models.Question;
 import de.fh.dortmund.models.Tag;
 import de.fh.dortmund.models.User;
-import de.fh.dortmund.service.GET;
 
 import java.util.List;
 import java.util.Random;

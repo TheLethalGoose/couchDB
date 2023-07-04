@@ -1,13 +1,19 @@
 package de.fh.dortmund.service;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import de.fh.dortmund.models.Answer;
+import de.fh.dortmund.models.Post;
+import de.fh.dortmund.models.User;
 import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -17,32 +23,49 @@ import static de.fh.dortmund.service.GET.getDocumentById;
 
 public class PUT {
 
-    public static HttpResponse addPostToFavorites(String userId, String postId) throws IOException {
 
+    public static StatusLine addPostToFavorites(User user, Post post) throws IOException {
 
-        HttpPut request = new HttpPut(COUCHDB_URL + "/" + userId);
+        HttpClient httpClient = HttpClientBuilder.create().build();
+        HttpPut request = new HttpPut(COUCHDB_URL + "/" + user.getId());
+        Gson gson = new Gson();
 
-        JsonObject userDocument = getDocumentById(userId);
+        JsonObject userDocument = getDocumentById(user.getId());
 
         if (userDocument.has("Favoriten")) {
             JsonArray favoritenArray = userDocument.getAsJsonArray("Favoriten");
-            favoritenArray.add(postId);
+            favoritenArray.add(post.getId());
         } else {
             JsonArray favoritenArray = new JsonArray();
-            favoritenArray.add(postId);
+            favoritenArray.add(post.getId());
             userDocument.add("Favoriten", favoritenArray);
         }
 
         StringEntity requestEntity = new StringEntity(userDocument.toString(), ContentType.APPLICATION_JSON);
         request.setEntity(requestEntity);
 
-        return executeRequest(request);
+        HttpResponse response = httpClient.execute(request);
+        StatusLine statusLine = response.getStatusLine();
+
+        if (statusLine.getStatusCode() == 201) {
+            String responseBody = EntityUtils.toString(response.getEntity());
+            JsonObject documentResponse = gson.fromJson(responseBody, JsonObject.class);
+
+            String documentRev = documentResponse.get("rev").getAsString();
+
+            user.setRevision(documentRev);
+        }
+
+        return statusLine;
+
     }
 
-    public static HttpResponse updatePost(String postId, String content) throws IOException {
+    public static StatusLine updatePost(Post post, String content) throws IOException {
+        HttpClient httpClient = HttpClientBuilder.create().build();
+        HttpPut request = new HttpPut(COUCHDB_URL + "/" + post.getId());
+        Gson gson = new Gson();
 
-        HttpPut request = new HttpPut(COUCHDB_URL + "/" + postId);
-        JsonObject postDocument = getDocumentById(postId);
+        JsonObject postDocument = getDocumentById(post.getId());
 
         postDocument.addProperty("Content", content);
         postDocument.addProperty("ModifiedAt", LocalDateTime.now().toString());
@@ -50,24 +73,45 @@ public class PUT {
         StringEntity requestEntity = new StringEntity(postDocument.toString(), ContentType.APPLICATION_JSON);
         request.setEntity(requestEntity);
 
-        return executeRequest(request);
+        HttpResponse response = httpClient.execute(request);
+        StatusLine statusLine = response.getStatusLine();
+
+        if (statusLine.getStatusCode() == 201) {
+            String responseBody = EntityUtils.toString(response.getEntity());
+            JsonObject documentResponse = gson.fromJson(responseBody, JsonObject.class);
+
+            String documentRev = documentResponse.get("rev").getAsString();
+
+            post.setRevision(documentRev);
+        }
+
+        return statusLine;
     }
 
-    public static HttpResponse markAnswerAsAccepted(String answerId) throws IOException {
+    public static StatusLine markAnswerAsAccepted(Answer answer) throws IOException {
+        HttpClient httpClient = HttpClientBuilder.create().build();
+        HttpPut request = new HttpPut(COUCHDB_URL + "/" + answer.getId());
+        Gson gson = new Gson();
 
-        HttpPut request = new HttpPut(COUCHDB_URL + "/" + answerId);
-        JsonObject postDocument = getDocumentById(answerId);
+        JsonObject postDocument = getDocumentById(answer.getId());
 
         postDocument.addProperty("Accepted", true);
         StringEntity requestEntity = new StringEntity(postDocument.toString(), ContentType.APPLICATION_JSON);
         request.setEntity(requestEntity);
 
-        return executeRequest(request);
-    }
+        HttpResponse response = httpClient.execute(request);
+        StatusLine statusLine = response.getStatusLine();
 
-    private static HttpResponse executeRequest(HttpPut request) throws IOException {
-        HttpClient httpClient = HttpClientBuilder.create().build();
-        return httpClient.execute(request);
+        if (statusLine.getStatusCode() == 201) {
+            String responseBody = EntityUtils.toString(response.getEntity());
+            JsonObject documentResponse = gson.fromJson(responseBody, JsonObject.class);
+
+            String documentRev = documentResponse.get("rev").getAsString();
+
+            answer.setRevision(documentRev);
+        }
+
+        return statusLine;
     }
 
 }

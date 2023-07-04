@@ -12,6 +12,9 @@ public class User {
     @SerializedName("_id")
     private String id = UUID.randomUUID().toString();
 
+    @SerializedName("_rev")
+    private String revision;
+
     @SerializedName("Email")
     private String email;
 

@@ -4,9 +4,9 @@ import com.github.javafaker.Faker;
 import de.fh.dortmund.helper.Timer;
 import de.fh.dortmund.models.Answer;
 import de.fh.dortmund.models.Question;
+import de.fh.dortmund.models.User;
 import lombok.SneakyThrows;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
@@ -29,7 +29,7 @@ public class PostEditor {
                 continue;
             }
             timer.start();
-            markAnswerAsAccepted(answer.getId());
+            markAnswerAsAccepted(answer);
             long time = timer.getElapsedTime();
             times[i] = time;
         }
@@ -37,16 +37,15 @@ public class PostEditor {
     }
 
     @SneakyThrows
-    public static long medianTimeToAddPostToFavorites(List<Answer> answers, int iterations){
+    public static long medianTimeToAddQuestionToFavorites(List<User> users, List<Question> questions, int iterations){
         long[] times = new long[iterations];
 
+        User randomUser = users.get(random.nextInt(users.size()));
+
         for(int i = 0; i < iterations; i++){
-            Answer answer = answers.get(random.nextInt(answers.size()));
-            if(answer.isAccepted()) {
-                continue;
-            }
+            Question question = questions.get(random.nextInt(questions.size()));
             timer.start();
-            addPostToFavorites("00945701-66eb-4d1f-b84f-b347f5038cef", answer.getId());
+            addPostToFavorites(randomUser, question);
             long time = timer.getElapsedTime();
             times[i] = time;
         }
@@ -60,7 +59,7 @@ public class PostEditor {
         for(int i = 0; i < iterations; i++){
             Question question = questions.get(random.nextInt(questions.size()));
             timer.start();
-            updatePost(question.getId(), faker.lorem().paragraph());
+            updatePost(question, faker.lorem().paragraph());
             long time = timer.getElapsedTime();
             times[i] = time;
         }

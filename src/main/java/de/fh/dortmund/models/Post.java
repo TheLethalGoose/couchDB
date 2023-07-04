@@ -16,6 +16,9 @@ public abstract class Post {
     @SerializedName("_id")
     private String id;
 
+    @SerializedName("_rev")
+    private String revision;
+
     @SerializedName("IdUser")
     private String userId;
 

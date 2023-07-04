@@ -3,6 +3,7 @@ package de.fh.dortmund.couchDB;
 import de.fh.dortmund.helper.Timer;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import static de.fh.dortmund.service.POST.post;
@@ -10,9 +11,9 @@ import static de.fh.dortmund.service.POST.post;
 
 public class CouchPersistor {
 
-    private static Timer timer = new Timer();
+    private static final Timer timer = new Timer();
 
-    public static long persist(List<?> objects, String createdObjectName, boolean debug, int amount){
+    public static long persist(List<?> objects, boolean debug) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         timer.start();
 
         try {
@@ -24,7 +25,7 @@ public class CouchPersistor {
         long timeToCreate = timer.getElapsedTime();
 
         if(debug) {
-            System.out.println("Created " + amount + " " +  createdObjectName + " in " + timeToCreate + "ms.");
+            System.out.println("Persisted " + objects.size() + " objects of Type " +  objects.get(1).getClass().getSimpleName() + " in " + timeToCreate + "ms.");
         }
 
         return timeToCreate;
