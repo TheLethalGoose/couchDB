@@ -21,6 +21,9 @@
     },
     "allComments": {
       "map": "function (doc) {\n  if (doc.type === 'comment') {\n    emit(doc._id, doc);\n  }\n}"
+    },
+    "moderatedPosts": {
+      "map": "function (doc) {\n  if (doc.moderated && doc.moderated.moderated === true) {\n    emit(doc._id, {\n      \"User\": doc.IdUser,\n      \"Reason\": doc.moderated.reason,\n      \"Tags\": doc.moderated.moderationTags,\n      \"ReportedAt\": doc.moderated.reportedAt\n    });\n  }\n}"
     }
   },
   "language": "javascript"

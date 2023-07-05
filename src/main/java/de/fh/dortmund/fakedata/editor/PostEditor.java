@@ -5,8 +5,10 @@ import de.fh.dortmund.helper.Timer;
 import de.fh.dortmund.models.Answer;
 import de.fh.dortmund.models.Question;
 import de.fh.dortmund.models.User;
+import de.fh.dortmund.models.enums.ModerationTag;
 import lombok.SneakyThrows;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
@@ -60,6 +62,31 @@ public class PostEditor {
             Question question = questions.get(random.nextInt(questions.size()));
             timer.start();
             updatePost(question, faker.lorem().paragraph());
+            long time = timer.getElapsedTime();
+            times[i] = time;
+        }
+        return calculateMedian(times);
+
+    }
+    @SneakyThrows
+    public static long medianTimeToModerateQuestions(List<Question> questions, int iterations) {
+        long[] times = new long[iterations];
+
+        for(int i = 0; i < iterations; i++){
+            Question question = questions.get(random.nextInt(questions.size()));
+            String moderationReason = faker.lorem().paragraph();
+
+            HashSet<ModerationTag> moderationTags = new HashSet<>();
+            int moderationTagCount = random.nextInt(1,3);
+
+            for(int j = 0; j < moderationTagCount; j++){
+                moderationTags.add(ModerationTag.fromValue(random.nextInt(4)));
+            }
+
+            ModerationTag[] moderationTagArray = moderationTags.toArray(new ModerationTag[0]);
+
+            timer.start();
+            moderateQuestion(question, moderationTagArray, moderationReason);
             long time = timer.getElapsedTime();
             times[i] = time;
         }

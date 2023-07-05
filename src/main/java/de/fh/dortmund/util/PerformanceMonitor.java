@@ -195,6 +195,7 @@ public class PerformanceMonitor {
 
         System.out.println("Median time to edit content of question of " + fetchIterations + " iterations: " + convertMilliSeconds(PostEditor.medianTimeToEditQuestion(questions, fetchIterations)));
         System.out.println("Median time to mark answer as accepted of " + fetchIterations + " iterations: " + convertMilliSeconds(PostEditor.medianTimeToAcceptAnswer(answers, fetchIterations)));
+        System.out.println("(EXTENSION) Median time to moderate question of " + fetchIterations + " iterations: " + convertMilliSeconds(PostEditor.medianTimeToModerateQuestions(questions, fetchIterations)));
         System.out.println("(EXTENSION) Median time to add question to favorites of " + fetchIterations + " iterations: " + convertMilliSeconds(PostEditor.medianTimeToAddQuestionToFavorites(users, questions, fetchIterations)));
 
         System.out.println("------------------------------------------------------------------");
