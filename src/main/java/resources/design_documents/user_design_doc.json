@@ -9,6 +9,9 @@
     },
     "userFavorites": {
       "map": "function (doc) {\n  if(doc.type === 'user' && doc.Favoriten){\n    emit(doc._id, doc.Favoriten);\n  }\n}"
+    },
+    "moderatedUsers": {
+      "map": "function (doc) {\n  if(doc.moderated){\n    emit(doc.IdUser, doc.moderated.moderationTags)\n  }\n}"
     }
   },
   "language": "javascript"
