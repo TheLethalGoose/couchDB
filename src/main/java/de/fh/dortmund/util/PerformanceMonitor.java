@@ -2,7 +2,6 @@ package de.fh.dortmund.util;
 
 import de.fh.dortmund.couchDB.CouchPersistor;
 import de.fh.dortmund.fakedata.destroyer.post.PostDestroyer;
-import de.fh.dortmund.fakedata.destroyer.user.UserDestroyer;
 import de.fh.dortmund.fakedata.editor.PostEditor;
 import de.fh.dortmund.fakedata.generator.post.AnswerGenerator;
 import de.fh.dortmund.fakedata.generator.post.CommentGenerator;
@@ -40,9 +39,12 @@ public class PerformanceMonitor {
     long[] generatedUsersInTimes;
     long[] generatedQuestionsInTimes;
     long[] generatedAnswersInTimes;
+    long[] generatedCommentsInTimes;
+    long[] generatedVotesInTimes;
     long[] destroyedUsersInTimes;
-    long[] destroyedQuestionsInTimes;
+    long[] destroyedQuestionsAndAnswersAndCommentsInTimes;
     long[] destroyedAnswersInTimes;
+    long[] destroyedCommentsInTimes;
     long[] timesToGenerate;
     long[] timesToDestroy;
 
@@ -53,23 +55,27 @@ public class PerformanceMonitor {
         generatedUsersInTimes = new long[ddlIterations];
         generatedQuestionsInTimes = new long[ddlIterations];
         generatedAnswersInTimes = new long[ddlIterations];
+        generatedCommentsInTimes = new long[ddlIterations];
+        generatedVotesInTimes = new long[ddlIterations];
         destroyedUsersInTimes = new long[ddlIterations];
-        destroyedQuestionsInTimes = new long[ddlIterations];
+        destroyedQuestionsAndAnswersAndCommentsInTimes = new long[ddlIterations];
         destroyedAnswersInTimes = new long[ddlIterations];
+        destroyedCommentsInTimes = new long[ddlIterations];
         timesToGenerate = new long[ddlIterations];
         timesToDestroy = new long[ddlIterations];
     }
     @SneakyThrows
     public void runPerformanceTest(){
-        createAndDestroyDataTest(10, 1500, 2000, 2, 500, 1000, 5);
+        createAndDestroyDataTest(2500, 1500, 2000, 3000, 5, 1500, 2000, 3000,5, 2);
+
         //Fetch and edit data test
-        generateTestData(1000, 1000, 2000, 1000, 5);
+        generateTestData(2500, 3000, 2000, 1500, 2);
         fetchDataTest();
-        editDataTest();
+        editDataTest(1000);
     }
 
     @SneakyThrows
-    private void createAndDestroyDataTest(int usersToGenerate, int questionsToGenerate, int answersToGenerate, int tagsToGenerate, int questionsToDestroy, int answersToDestroy, int usersToDestroy){
+    private void createAndDestroyDataTest(int usersToGenerate, int questionsToGenerate, int answersToGenerate, int commentsToGenerate, int tagsToGenerate, int questionsToDestroy, int answersToDestroy, int commentsToDestroy, int tagsPerQuestion, int votesToGeneratePerPost){
 
         Timer timer = new Timer();
 
@@ -80,9 +86,10 @@ public class PerformanceMonitor {
             // Generate local test data
             users = UserGenerator.generateUsers(usersToGenerate);
             tags = TagGenerator.generateTags(tagsToGenerate);
-            questions = QuestionGenerator.generateQuestions(users, questionsToGenerate, 5, tags);
+            questions = QuestionGenerator.generateQuestions(users, questionsToGenerate, tagsPerQuestion, tags);
+            comments = CommentGenerator.generateComments(questions, users, commentsToGenerate);
             answers = AnswerGenerator.generateAnswers(questions, users, answersToGenerate);
-            // Insert data into database
+            votes = VoteGenerator.generateVotes(comments, questions, answers, users, votesToGeneratePerPost);
 
             // Test performance of generation and deletion of users, questions and answers
             timer.start();
@@ -91,25 +98,30 @@ public class PerformanceMonitor {
             long generatedUsersIn = CouchPersistor.persist(users, false);
             long generatedQuestionsIn = CouchPersistor.persist(questions, false);
             long generatedAnswersIn = CouchPersistor.persist(answers, false);
+            long generatedCommentsIn = CouchPersistor.persist(comments, false);
+            long generatedVotesIn = CouchPersistor.persist(votes, false);
 
             long generatedIn = timer.getElapsedTime();
 
             generatedUsersInTimes[i] = generatedUsersIn;
             generatedQuestionsInTimes[i] = generatedQuestionsIn;
             generatedAnswersInTimes[i] = generatedAnswersIn;
+            generatedCommentsInTimes[i] = generatedCommentsIn;
+            generatedVotesInTimes[i] = generatedVotesIn;
             timesToGenerate[i] = generatedIn;
 
             // Deletion from database
-
-            long destroyedUsersIn = UserDestroyer.destroyUsers(users, usersToDestroy, false);
-            long destroyedQuestionsIn = PostDestroyer.destroyQuestions(questions, answers, comments, votes, questionsToDestroy,false);
-            long destroyedAnswersIn = PostDestroyer.destroyAnswers(answers, votes, answersToDestroy, false);
+            //long destroyedUsersIn = UserDestroyer.destroyUsers(users, usersToDestroy, false);
+            long destroyedQuestionsAndAnswersAndCommentsIn = PostDestroyer.destroyQuestions(questions, answers, comments, votes, questionsToDestroy,false);
+            //long destroyedAnswersIn = PostDestroyer.destroyAnswers(answers, votes, answersToDestroy, false);
+            //long destroyedCommentsIn = PostDestroyer.destroyComments(comments, votes, commentsToDestroy, false);
 
             long destroyedIn = timer.getElapsedTime();
 
-            destroyedUsersInTimes[i] = destroyedUsersIn;
-            destroyedQuestionsInTimes[i] = destroyedQuestionsIn;
-            destroyedAnswersInTimes[i] = destroyedAnswersIn;
+            //destroyedUsersInTimes[i] = destroyedUsersIn;
+            destroyedQuestionsAndAnswersAndCommentsInTimes[i] = destroyedQuestionsAndAnswersAndCommentsIn;
+            //destroyedAnswersInTimes[i] = destroyedAnswersIn;
+            //destroyedCommentsInTimes[i] = destroyedCommentsIn;
             timesToDestroy[i] = destroyedIn;
 
 
@@ -119,11 +131,12 @@ public class PerformanceMonitor {
                 System.out.println("Generated " + usersToGenerate + " users in " + convertMilliSeconds(generatedUsersIn));
                 System.out.println("Generated " + questionsToGenerate + " questions in " + convertMilliSeconds(generatedQuestionsIn));
                 System.out.println("Generated " + answersToGenerate + " answers in " + convertMilliSeconds(generatedAnswersIn));
+                System.out.println("Generated " + (questionsToGenerate + answersToGenerate + commentsToGenerate) * votesToGeneratePerPost + " votes in " + convertMilliSeconds(generatedVotesIn));
                 System.out.println("-----------------------------------------");
                 System.out.println("Finsished destroying test data in " + convertMilliSeconds(timer.getElapsedTime()));
-                System.out.println("Destroyed " + usersToDestroy + " users in " + convertMilliSeconds(destroyedUsersIn));
-                System.out.println("Destroyed " + questionsToDestroy + " questions in " + convertMilliSeconds(destroyedQuestionsIn));
-                System.out.println("Destroyed " + answersToDestroy + " answers in " + convertMilliSeconds(destroyedAnswersIn));
+                //System.out.println("Destroyed " + usersToDestroy + " users in " + convertMilliSeconds(destroyedUsersIn));
+                System.out.println("Destroyed " + questionsToDestroy + " questions in " + convertMilliSeconds(destroyedQuestionsAndAnswersAndCommentsIn));
+                //System.out.println("Destroyed " + answersToDestroy + " answers in " + convertMilliSeconds(destroyedAnswersIn));
             }
 
         }
@@ -146,6 +159,18 @@ public class PerformanceMonitor {
             System.out.println("Median time of generating answers: " + convertMilliSeconds(calculateMedian(generatedAnswersInTimes)));
             System.out.println("Min time of generating answers: " + convertMilliSeconds(min(generatedAnswersInTimes)));
             System.out.println("Max time of generating answers: " + convertMilliSeconds(max(generatedAnswersInTimes)));
+            System.out.println("-----------------------------------------");
+
+            System.out.println("Average time of generating comments: " + convertMilliSeconds(calculateAverage(generatedCommentsInTimes)));
+            System.out.println("Median time of generating comments: " + convertMilliSeconds(calculateMedian(generatedCommentsInTimes)));
+            System.out.println("Min time of generating comments: " + convertMilliSeconds(min(generatedCommentsInTimes)));
+            System.out.println("Max time of generating comments: " + convertMilliSeconds(max(generatedCommentsInTimes)));
+            System.out.println("-----------------------------------------");
+
+            System.out.println("Average time of generating votes: " + convertMilliSeconds(calculateAverage(generatedVotesInTimes)));
+            System.out.println("Median time of generating votes: " + convertMilliSeconds(calculateMedian(generatedVotesInTimes)));
+            System.out.println("Min time of generating votes: " + convertMilliSeconds(min(generatedVotesInTimes)));
+            System.out.println("Max time of generating votes: " + convertMilliSeconds(max(generatedVotesInTimes)));
             System.out.println("-----------------------------------------");
 
             System.out.println("-----------------------------------------");
@@ -190,10 +215,10 @@ public class PerformanceMonitor {
         System.out.println("------------------------------------------------------------------");
     }
 
-    private void editDataTest(){
+    private void editDataTest(int questionsToAlter){
         System.out.println("Starting edit data test");
 
-        System.out.println("Median time to edit content of question of " + fetchIterations + " iterations: " + convertMilliSeconds(PostEditor.medianTimeToEditQuestion(questions, fetchIterations)));
+        System.out.println("Median time to edit content of question of " + fetchIterations + " iterations: " + convertMilliSeconds(PostEditor.medianTimeToEditQuestion(questions, fetchIterations, questionsToAlter)));
         System.out.println("Median time to mark answer as accepted of " + fetchIterations + " iterations: " + convertMilliSeconds(PostEditor.medianTimeToAcceptAnswer(answers, fetchIterations)));
         System.out.println("(EXTENSION) Median time to moderate question of " + fetchIterations + " iterations: " + convertMilliSeconds(PostEditor.medianTimeToModerateQuestions(questions, fetchIterations)));
         System.out.println("(EXTENSION) Median time to add question to favorites of " + fetchIterations + " iterations: " + convertMilliSeconds(PostEditor.medianTimeToAddQuestionToFavorites(users, questions, fetchIterations)));
@@ -202,14 +227,20 @@ public class PerformanceMonitor {
     }
 
     @SneakyThrows
-    public void generateTestData(int usersToGenerate, int questionsToGenerate, int answersToGenerate, int commentsToGenerate, int maxTagsToGeneratePerQuestion){
+    public void generateTestData(int usersToGenerate,int commentsToGenerate, int answersToGenerate, int questionsToGenerate, int votesToGeneratePerPost){
         System.out.println("Generating test data");
 
         // Generate additional local data
+        users = UserGenerator.generateUsers(usersToGenerate);
+        questions = QuestionGenerator.generateQuestions(users, questionsToGenerate, 5, tags);
+        answers = AnswerGenerator.generateAnswers(questions, users, answersToGenerate);
         comments = CommentGenerator.generateComments(questions, users, commentsToGenerate);
-        votes = VoteGenerator.generateVotes(comments, questions, answers, users);
+        votes = VoteGenerator.generateVotes(comments, questions, answers, users, votesToGeneratePerPost);
 
         // Insert data into database
+        CouchPersistor.persist(users, false);
+        CouchPersistor.persist(questions, false);
+        CouchPersistor.persist(answers, false);
         CouchPersistor.persist(comments, false);
         CouchPersistor.persist(votes, false);
     }

@@ -107,5 +107,40 @@ public class PostDestroyer {
 
     }
 
+    public static long destroyComments(List<Comment> commentsRef, List<Vote> votesRef, int amount, boolean debug) throws IOException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        if(commentsRef.isEmpty() || commentsRef.size() < amount) {
+            System.out.println("No comments found or amount to big. Please create answers first.");
+            return -1;
+        }
+
+        List<Object> objectsToDelete = new ArrayList<>();
+
+        timer.start();
+
+        for (int i = 0; i < amount; i++) {
+            int indexToRemove = random.nextInt(commentsRef.size());
+            Comment victim = commentsRef.remove(indexToRemove);
+            objectsToDelete.add(victim);
+
+            for (int j = 0; j < commentsRef.size(); j++) {
+
+                if(votesRef.get(j).getPostId().equals(victim.getId())) {
+                    Vote vote = votesRef.remove(j);
+                    objectsToDelete.add(vote);
+                }
+            }
+        }
+
+        delete(objectsToDelete);
+
+        long timeToDestroy = timer.getElapsedTime();
+
+        if(debug) {
+            System.out.println("Removed " + amount + " answers in " + timeToDestroy + " ms");
+        }
+
+        return timeToDestroy;
+
+    }
 }
 

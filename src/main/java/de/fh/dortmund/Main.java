@@ -18,7 +18,7 @@ public class Main {
     @SneakyThrows
     public static void main(String[] args) {
         CouchInitializer.init(COUCHDB_HOST, COUCHDB_PORT, DATABASE_NAME, "admin", "admin", true);
-        PerformanceMonitor monitor = new PerformanceMonitor(2, 10);
+        PerformanceMonitor monitor = new PerformanceMonitor(2, 2);
         monitor.runPerformanceTest();
     }
 }

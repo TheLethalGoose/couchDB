@@ -55,19 +55,23 @@ public class PostEditor {
     }
 
     @SneakyThrows
-    public static long medianTimeToEditQuestion(List<Question> questions, int iterations) {
+    public static long medianTimeToEditQuestion(List<Question> questions, int iterations, int questionsToAlter) {
         long[] times = new long[iterations];
 
         for(int i = 0; i < iterations; i++){
-            Question question = questions.get(random.nextInt(questions.size()));
             timer.start();
-            updatePost(question, faker.lorem().paragraph());
+
+            for(int j = 0; j<questionsToAlter; j++){
+                Question question = questions.get(random.nextInt(questions.size()));
+                updatePost(question, faker.lorem().paragraph());
+            }
+
             long time = timer.getElapsedTime();
             times[i] = time;
         }
         return calculateMedian(times);
-
     }
+
     @SneakyThrows
     public static long medianTimeToModerateQuestions(List<Question> questions, int iterations) {
         long[] times = new long[iterations];
