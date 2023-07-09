@@ -88,7 +88,7 @@ public class CouchInitializer {
 
         return httpClient.execute(securityRequest, context);
     }
-    private static void defineDesignDocuments(URI databaseUri, HttpClientContext context, CredentialsProvider credentialsProvider) throws IOException {
+    private static void defineDesignDocuments(URI databaseUri, HttpClientContext context, CredentialsProvider credentialsProvider, boolean debug) throws IOException {
 
         File designDocumentsFolder = new File("src/main/java/resources/design_documents");
         File[] designDocuments = designDocumentsFolder.listFiles();
@@ -97,9 +97,9 @@ public class CouchInitializer {
             String designDocumentJson = new String(Files.readAllBytes(Paths.get(designDocument.getPath())));
             HttpResponse response = createDesignDocument(designDocumentJson, databaseUri, context, credentialsProvider);
 
-            if(response.getStatusLine().getStatusCode() == 201) {
+            if(response.getStatusLine().getStatusCode() == 201 && debug) {
                 System.out.println("Design document " + designDocument.getName().replaceAll("\\.\\w+$", "") + " created successfully.");
-            }else{
+            }else if(debug){
                 System.out.println("Design document " + designDocument.getName() + " could not be created.");
                 System.out.println(response.getStatusLine().getStatusCode() + " " + response.getStatusLine().getReasonPhrase());
             }
@@ -126,7 +126,7 @@ public class CouchInitializer {
     }
 
 
-    public static void init(String host, int port, String databaseName, String user, String password, boolean flushData) throws URISyntaxException {
+    public static void init(String host, int port, String databaseName, String user, String password, boolean flushData, boolean debug) throws URISyntaxException {
 
         // Configuration of the target host
         HttpHost target = new HttpHost(host, port, "http");
@@ -146,7 +146,7 @@ public class CouchInitializer {
                 HttpResponse responseDelete = deleteDatabase(databaseUri, context, credentialsProvider);
                 int responseCodeDelete = responseDelete.getStatusLine().getStatusCode();
 
-                if (responseCodeDelete == 200) {
+                if (responseCodeDelete == 200 && debug) {
                     System.out.println("Flushed database " + databaseName + " successfully.");
                 }
 
@@ -166,21 +166,25 @@ public class CouchInitializer {
 
                 HttpResponse responseSecurity = defineSecurityRules(databaseUri, context, credentialsProvider);
 
-                if(responseSecurity.getStatusLine().getStatusCode() == 200) {
+                if(responseSecurity.getStatusLine().getStatusCode() == 200 && debug) {
                     System.out.println("Security rules created successfully.");
                 }
 
-                defineDesignDocuments(databaseUri, context, credentialsProvider);
+                defineDesignDocuments(databaseUri, context, credentialsProvider, debug);
 
                 return;
             }
-            if(responseCodeCreate == 412) {
+            if(responseCodeCreate == 412 && debug) {
                 System.out.println("Database " + databaseName + " already exists.");
                 return;
             }
 
-            System.out.println("Error creating database " + databaseName);
-            System.out.println("Response Create: " + responseCodeCreate + " " + responseCreate.getStatusLine().getReasonPhrase());
+            if(debug){
+                System.out.println("Error creating database " + databaseName);
+                System.out.println("Response Create: " + responseCodeCreate + " " + responseCreate.getStatusLine().getReasonPhrase());
+
+            }
+
 
         } catch (IOException e) {
             throw new RuntimeException(e);

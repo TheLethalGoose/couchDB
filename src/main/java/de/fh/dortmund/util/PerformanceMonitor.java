@@ -1,5 +1,6 @@
 package de.fh.dortmund.util;
 
+import de.fh.dortmund.couchDB.CouchInitializer;
 import de.fh.dortmund.couchDB.CouchPersistor;
 import de.fh.dortmund.fakedata.destroyer.post.PostDestroyer;
 import de.fh.dortmund.fakedata.editor.PostEditor;
@@ -20,6 +21,7 @@ import lombok.SneakyThrows;
 import java.util.ArrayList;
 import java.util.List;
 
+import static de.fh.dortmund.Main.*;
 import static de.fh.dortmund.helper.Statistics.*;
 import static de.fh.dortmund.helper.Timer.convertMilliSeconds;
 
@@ -66,12 +68,14 @@ public class PerformanceMonitor {
     }
     @SneakyThrows
     public void runPerformanceTest(){
+
+        CouchInitializer.init(COUCHDB_HOST, COUCHDB_PORT, DATABASE_NAME, "admin", "admin", true, true);
         createAndDestroyDataTest(2500, 1500, 2000, 3000, 5, 1500, 2000, 3000,5, 2);
 
-        //Fetch and edit data test
+        CouchInitializer.init(COUCHDB_HOST, COUCHDB_PORT, DATABASE_NAME, "admin", "admin", true, false);
         generateTestData(2500, 3000, 2000, 1500, 2);
         fetchDataTest();
-        editDataTest(1000);
+        editDataTest(10);
     }
 
     @SneakyThrows

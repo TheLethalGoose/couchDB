@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -26,9 +25,6 @@ public class User {
 
     @SerializedName("Username")
     private String username;
-
-    @SerializedName("QuestionWatches")
-    private List<Tag> tagWatches;
 
     public User(String email, String password, String username) {
         this.email = email;

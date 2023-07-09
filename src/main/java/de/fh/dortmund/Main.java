@@ -1,13 +1,12 @@
 package de.fh.dortmund;
 
-import de.fh.dortmund.couchDB.CouchInitializer;
 import de.fh.dortmund.util.PerformanceMonitor;
 import lombok.SneakyThrows;
 
 public class Main {
 
-    private static final String COUCHDB_HOST = "localhost";
-    private static final int COUCHDB_PORT = 5984;
+    public static final String COUCHDB_HOST = "localhost";
+    public static final int COUCHDB_PORT = 5984;
 
     private static final String COUCHDB_DATABASE = "stackoverflow";
 
@@ -17,8 +16,7 @@ public class Main {
 
     @SneakyThrows
     public static void main(String[] args) {
-        CouchInitializer.init(COUCHDB_HOST, COUCHDB_PORT, DATABASE_NAME, "admin", "admin", true);
-        PerformanceMonitor monitor = new PerformanceMonitor(2, 2);
+        PerformanceMonitor monitor = new PerformanceMonitor(2, 10);
         monitor.runPerformanceTest();
     }
 }
